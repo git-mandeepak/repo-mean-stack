@@ -31,8 +31,8 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// => localhost:3000/users
-router.post('/', (req, res) => {
+// => localhost:3000/users/register
+router.post('/register', (req, res) => {
     var usr = new User({
         UserName: req.body.UserName,
         Email: req.body.Email,
@@ -46,6 +46,8 @@ router.post('/', (req, res) => {
             res.send(doc);
         }
         else{
+            if(err.code == 11000)
+                res.status(422).send(['Duplicate email address found.'])
             console.log('Error in User Save: ' + JSON.stringify(err, undefined, 2));
         }
     });

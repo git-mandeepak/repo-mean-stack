@@ -1,20 +1,21 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 var userSchema = mongoose.Schema({
-    UserName: {type: String, required: "Username can\'t be empty!"},
+    UserName: { type: String, required: "Username can\'t be empty!" },
     Email: {
-        type: String, 
-        required: "Email can't be empty!", 
+        type: String,
+        required: "Email can't be empty!",
         unique: true
     },
-    FirstName: {type: String},
-    LastName: {type: String},
+    FirstName: { type: String },
+    LastName: { type: String },
     Password: {
         type: String, required: "Password can\'t be empty!",
-        minlength : [4,'Password must be atleast 4 character long']
+        minlength: [4, 'Password must be atleast 4 character long']
     },
-    saltSecret: {type: String}
+    saltSecret: { type: String }
 });
 
 // Custom validation for email
@@ -24,7 +25,7 @@ userSchema.path('Email').validate((val) => {
 }, 'Invalid e-mail.');
 
 // Events
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
     bcrypt.genSalt(10, (err, salt) => {
         bcrypt.hash(this.Password, salt, (err, hash) => {
             this.Password = hash;
@@ -33,6 +34,20 @@ userSchema.pre('save', function(next) {
         });
     });
 });
+
+// Methods
+userSchema.methods.verifyPassword = function (password) {
+    return bcrypt.compareSync(password, this.Password);
+};
+
+userSchema.methods.generateJwt = function () {
+    console.log("Calling here");
+    return jwt.sign({ _id: this._id },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: process.env.JWT_EXP
+        });
+}
 
 var User = mongoose.model('User', userSchema);
 
